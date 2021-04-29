@@ -22,21 +22,6 @@ class Runtime extends GenericRuntime
      */
     private $requestCreator;
 
-    /**
-     * @param array{
-     *   debug?: ?bool,
-     *   server_request_creator?: ?string,
-     *   psr17_server_request_factory?: ?string,
-     *   psr17_uri_factory?: ?string,
-     *   psr17_uploaded_file_factory?: ?string,
-     *   psr17_stream_factory?: ?string,
-     * } $options
-     */
-    public function __construct(array $options = [])
-    {
-        parent::__construct($options);
-    }
-
     public function getRunner(?object $application): RunnerInterface
     {
         if ($application instanceof RequestHandlerInterface) {
@@ -81,18 +66,8 @@ class Runtime extends GenericRuntime
     private function createRequest()
     {
         if (null === $this->requestCreator) {
-            $creatorClass = $this->options['server_request_creator'] ?? ServerRequestCreator::class;
-            if (isset($this->options['psr17_server_request_factory'], $this->options['psr17_uri_factory'], $this->options['psr17_uploaded_file_factory'], $this->options['psr17_stream_factory'])) {
-                $this->requestCreator = new $creatorClass(
-                    new $this->options['psr17_server_request_factory'](),
-                    new $this->options['psr17_uri_factory'](),
-                    new $this->options['psr17_uploaded_file_factory'](),
-                    new $this->options['psr17_stream_factory']()
-                );
-            } else {
-                $psr17Factory = new Psr17Factory();
-                $this->requestCreator = new $creatorClass($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
-            }
+            $psr17Factory = new Psr17Factory();
+            $this->requestCreator = new ServerRequestCreator($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
         }
 
         return $this->requestCreator->fromGlobals();
